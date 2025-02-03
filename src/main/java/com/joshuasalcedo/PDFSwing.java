@@ -9,6 +9,11 @@ import java.io.IOException;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import java.awt.image.BufferedImage;
@@ -23,13 +28,31 @@ public class PDFSwing {
     public PDFSwing() {
         frame = new JFrame("Swing PDF Viewer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);
+        frame.setSize(1600, 900);
 
-        // Create sidebar panel
-        JPanel sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setPreferredSize(new Dimension(150, frame.getHeight()));
-        frame.add(sidebar, BorderLayout.WEST);
+        // Create configurationPanel panel
+        JPanel configurationPanel = new JPanel();
+        configurationPanel.setLayout(new BoxLayout(configurationPanel, BoxLayout.Y_AXIS));
+        configurationPanel.setPreferredSize(new Dimension(150, frame.getHeight()));
+        frame.add(configurationPanel, BorderLayout.WEST);
+        configurationPanel.add(Box.createHorizontalGlue());
+        JLabel label = new JLabel("Configuration");
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        configurationPanel.add(label);
+
+        JPanel metadataPanel = new JPanel();
+
+        metadataPanel.setLayout(new BoxLayout(metadataPanel, BoxLayout.Y_AXIS));
+        metadataPanel.setPreferredSize(new Dimension(150, frame.getHeight()));
+        frame.add(metadataPanel, BorderLayout.EAST);
+        metadataPanel.add(Box.createHorizontalGlue());
+        JLabel metadataLabel = new JLabel("Metadata");
+        metadataLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        metadataPanel.add(metadataLabel);
+
+
+
+
 
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
@@ -83,6 +106,28 @@ public class PDFSwing {
                 pdfDisplay.setIcon(icon);
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(frame, "Error loading PDF", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }else {
+            try (PDDocument document = new PDDocument()) {
+                PDPage page = new PDPage(PDRectangle.A4); // Set A4 size
+                document.addPage(page);
+                PDFRenderer pdfRenderer = new PDFRenderer(document);
+                BufferedImage image = pdfRenderer.renderImage(0);
+                ImageIcon icon = new ImageIcon(image);
+                pdfDisplay.setIcon(icon);
+
+                PDPageContentStream contentStream = new PDPageContentStream(document, page);
+                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
+                contentStream.beginText();
+                contentStream.newLineAtOffset(100, 700);
+                contentStream.showText("Hello, PDF World!");
+                contentStream.endText();
+                contentStream.close();
+
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
